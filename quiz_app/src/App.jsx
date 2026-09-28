@@ -1,122 +1,100 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import React, { useState } from 'react';
+import WelcomeScreen from './Components/WelcomeScreen'; 
+import QuestCard from './Components/QuestCard';
+import ProgressBar from './Components/ProgressBar';
+import ReportScreen from './Components/ReportScreen';
 
+const LOCAL_QUESTIONS = [
+  {
+    "q": "Which planet in our solar system holds the record for having the highest number of confirmed orbiting moons?",
+    "options": ["Jupiter", "Saturn", "Uranus", "Neptune"],
+    "answer": "Saturn"
+  },
+  {
+    "q": "What is the capital of France?",
+    "options": ["Berlin", "London", "Paris", "Madrid"],
+    "answer": "Paris"
+  },
+  {
+    "q": "What is the largest mammal in the world?",
+    "options": ["African Elephant", "Blue Whale", "Giraffe", "Hippopotamus"],
+    "answer": "Blue Whale"
+  },
+  {
+    "q": "Which programming language is primarily used for web development and is known for its versatility and wide adoption?",
+    "options": ["Python", "JavaScript", "C++", "Java"],
+    "answer": "JavaScript"
+  },
+  {
+    "q": "What is the chemical symbol for gold?",
+    "options": ["Au", "Ag", "Gd", "Go"],
+    "answer": "Au"
+  },
+];
 function App() {
-  const [count, setCount] = useState(0)
+  const [questions, setQuestions] = useState(LOCAL_QUESTIONS);
+  const [currentIndex, setCurrentIndex] = useState(-1); 
+  const [score, setScore] = useState(0);
+  const [history, setHistory] = useState([]);
+  const [selectedOption, setSelectedOption] = useState(null);
+
+  const handleStart = () => {
+    setCurrentIndex(0);
+    setSelectedOption(null);
+  };
+
+  const handleSelectOption = (index) => {
+    setSelectedOption(index);
+  };
+
+  const handleNextQuestion = () => {
+    if (selectedOption === null) return;
+
+    const currentQuestion = questions[currentIndex];
+    const isCorrect = currentQuestion.options[selectedOption] === currentQuestion.answer;
+    
+    if (isCorrect) setScore(score + 1);
+    setHistory([...history, isCorrect ? "correct" : "incorrect"]);
+
+    setCurrentIndex(currentIndex + 1);
+    setSelectedOption(null);
+  };
+
+  const handleRestartQuiz = () => {
+    setCurrentIndex(-1); 
+    setScore(0);         
+    setHistory([]);      
+    setSelectedOption(null);
+  };
+
+  if (currentIndex === -1) {
+    return <WelcomeScreen onStart={handleStart} />;
+  }
+
+  if (currentIndex >= questions.length) {
+    return (
+      <ReportScreen 
+        score={score} 
+        total={questions.length} 
+        onRestart={handleRestartQuiz} 
+      />
+    );
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+    <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
+      <ProgressBar history={history} score={score} total={questions.length} />
+      
+      <QuestCard 
+        question={questions[currentIndex]} 
+        current={currentIndex} 
+        onSelectOption={handleSelectOption}
+        selectedOption={selectedOption} 
+        onNext={handleNextQuestion}
+      />
+    </div>
+  );
 }
 
-export default App
+export default App;
+
